@@ -1,0 +1,12 @@
+[submodule "external/unity"]
+	path = external/unity
+	url = https://github.com/ThrowTheSwitch/Unity.git
+[submodule "external/stm32c0"]
+	path = external/stm32c0
+	url = https://github.com/STMicroelectronics/STM32CubeC0.git
+[submodule "external/freertos"]
+	path = external/freertos
+	url = https://github.com/ARM-software/CMSIS-FreeRTOS.git
+[submodule "external/cmsis6"]
+	path = external/cmsis6
+	url = https://github.com/ARM-software/CMSIS_6.git
