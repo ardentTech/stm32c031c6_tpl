@@ -39,8 +39,11 @@ target_sources(stm32 PUBLIC
         stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_adc_ex.c
         stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_cortex.c
         stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_dma.c
+        stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_exti.c
         stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_gpio.c
         stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_rcc.c
+        stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_tim.c
+        stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_tim_ex.c
         stm32c0/Drivers/STM32C0xx_HAL_Driver/Src/stm32c0xx_hal_uart.c
         stm32c0/Drivers/CMSIS/Device/ST/STM32C0xx/Source/Templates/system_stm32c0xx.c
         stm32c0/Drivers/CMSIS/Device/ST/STM32C0xx/Source/Templates/gcc/startup_stm32c031xx.s
