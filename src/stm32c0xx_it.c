@@ -117,7 +117,6 @@ void EXTI4_15_IRQHandler(void)
     HAL_GPIO_EXTI_IRQHandler(X_DT_Pin);
     HAL_GPIO_EXTI_IRQHandler(X_CLK_Pin);
     HAL_GPIO_EXTI_IRQHandler(Y_CLK_Pin);
-	BSP_PB_IRQHandler(BUTTON_USER);
 }
 
 /**

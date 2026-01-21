@@ -18,7 +18,6 @@ void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
-void GreenLedTask(void *argument);
 void EncoderTask(void *argument);
 void YEncoderTask(void *argument);
 
@@ -154,13 +153,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
 }
 
-void GreenLedTask(void *argument) {
-    while (1) {
-        BSP_LED_Toggle(LED_GREEN);
-        osDelay(1000);
-    }
-}
-
 void EncoderTask(void *argument) {
     while (1) {
         if (pan_encoder_triggered) {
@@ -193,14 +185,6 @@ int main(void) {
     pan_tilt = PanTilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
     PanTilt_reset(&pan_tilt);
 
-    // led task
-    // const osThreadAttr_t greenLedTask_attributes = {
-    //     .name = "greenLedTask",
-    //     .priority = (osPriority_t) osPriorityNormal + 1,
-    //     .stack_size = 128 * 4
-    // };
-    // osThreadNew(GreenLedTask, NULL, &greenLedTask_attributes);
-
     // encoder task
     const osThreadAttr_t encoderTask_attributes = {
         .name = "encoderTask",
@@ -212,8 +196,6 @@ int main(void) {
     osKernelInitialize();
 
     MX_FREERTOS_Init();
-    //BSP_LED_Init(LED_GREEN);
-    //BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
     osKernelStart();
 
     // should never get here
