@@ -1,6 +1,9 @@
 add_executable(tpl
         app_freertos.c
         main.c
+        pan_tilt.c
+        rotary_encoder.c
+        servo.c
         stm32c0xx_hal_msp.c
         stm32c0xx_hal_timebase_tim.c
         stm32c0xx_it.c

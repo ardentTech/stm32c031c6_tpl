@@ -102,17 +102,22 @@ void HardFault_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line 2 and line 3 interrupts.
+  */
+void EXTI2_3_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(Y_DT_Pin);
+}
+
+/**
  * @brief This function handles EXTI line 4 to 15 interrupts.
  */
 void EXTI4_15_IRQHandler(void)
 {
-	/* USER CODE BEGIN EXTI4_15_IRQn 0 */
-
-	/* USER CODE END EXTI4_15_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(X_DT_Pin);
+    HAL_GPIO_EXTI_IRQHandler(X_CLK_Pin);
+    HAL_GPIO_EXTI_IRQHandler(Y_CLK_Pin);
 	BSP_PB_IRQHandler(BUTTON_USER);
-	/* USER CODE BEGIN EXTI4_15_IRQn 1 */
-
-	/* USER CODE END EXTI4_15_IRQn 1 */
 }
 
 /**
@@ -120,13 +125,7 @@ void EXTI4_15_IRQHandler(void)
  */
 void TIM1_BRK_UP_TRG_COM_IRQHandler(void)
 {
-	/* USER CODE BEGIN TIM1_BRK_UP_TRG_COM_IRQn 0 */
-
-	/* USER CODE END TIM1_BRK_UP_TRG_COM_IRQn 0 */
 	HAL_TIM_IRQHandler(&htim1);
-	/* USER CODE BEGIN TIM1_BRK_UP_TRG_COM_IRQn 1 */
-
-	/* USER CODE END TIM1_BRK_UP_TRG_COM_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

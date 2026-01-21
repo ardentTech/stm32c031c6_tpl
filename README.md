@@ -1,8 +1,20 @@
-# STM32C031C6 Project Template
+# Pan+Tilt Controller
+A FreeRTOS application demonstrating servo control on a STM32 Nucleo C031c6 board.
 
-## Ecosystem
+## Hardware
+* STM32 Nucleo C031C6
+* Tower SG90 Servo (x2)
+* Rotary Encoder (x2)
+
+## Firmware
 * FreeRTOS
 * STM32C0 HAL
 * CMSIS6
 * Unity
 * CMake
+
+## TODO
+- [ ] Push encoder button to reset servo position
+- [ ] Remove BSP layer (LED, UART, blue btn)
+- [ ] Unit tests
+- [ ] Standardize naming

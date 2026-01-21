@@ -1,20 +1,65 @@
+#include <stdbool.h>
 #include "main.h"
+
 #include "cmsis_os2.h"
 
 TIM_HandleTypeDef htim3;
+static PanTilt pan_tilt;
+volatile static bool pan_encoder_triggered = false;
+volatile static bool tilt_encoder_triggered = false;
+
+// these values are from manually testing the two Tower SG90s in the adafruit pan+tilt kit
+const uint16_t PAN_MIN_PULSE = 500;
+const uint16_t PAN_MAX_PULSE = 2400;
+const uint16_t TILT_MIN_PULSE = 1300;
+const uint16_t TILT_MAX_PULSE = 2400;
 
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
 void GreenLedTask(void *argument);
-void Error_Handler(void);
+void EncoderTask(void *argument);
+void YEncoderTask(void *argument);
+
+void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
+    if (GPIO_Pin == X_CLK_Pin || GPIO_Pin == X_DT_Pin) {
+        pan_encoder_triggered = true;
+    } else if (GPIO_Pin == Y_CLK_Pin || GPIO_Pin == Y_DT_Pin) {
+        tilt_encoder_triggered = true;
+    }
+}
 
 static void MX_GPIO_Init(void)
 {
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    /*Configure GPIO pin : Y_CLK_Pin */
+    GPIO_InitStruct.Pin = Y_CLK_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(Y_CLK_GPIO_Port, &GPIO_InitStruct);
+
+    /*Configure GPIO pins : Y_DT_Pin X_DT_Pin X_CLK_Pin */
+    GPIO_InitStruct.Pin = Y_DT_Pin|X_DT_Pin|X_CLK_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /* EXTI interrupt init*/
+    HAL_NVIC_SetPriority(EXTI0_1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
+
+    HAL_NVIC_SetPriority(EXTI2_3_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(EXTI2_3_IRQn);
+
+    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 }
 
 static void MX_TIM3_Init(void)
@@ -47,14 +92,14 @@ static void MX_TIM3_Init(void)
         Error_Handler();
     }
     sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.Pulse = 25;
+    sConfigOC.Pulse = 0;
     sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
     sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
     if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
     {
         Error_Handler();
     }
-    sConfigOC.Pulse = 0;
+    //sConfigOC.Pulse = 0;
     if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
     {
         Error_Handler();
@@ -79,8 +124,8 @@ void SystemClock_Config(void)
     __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_1);
 
     /** Initializes the RCC Oscillators according to the specified parameters
-     * in the RCC_OscInitTypeDef structure.
-     */
+    * in the RCC_OscInitTypeDef structure.
+    */
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSEState = RCC_HSE_ON;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -89,9 +134,9 @@ void SystemClock_Config(void)
     }
 
     /** Initializes the CPU, AHB and APB buses clocks
-     */
+    */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-            |RCC_CLOCKTYPE_PCLK1;
+                                |RCC_CLOCKTYPE_PCLK1;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
     RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
@@ -110,9 +155,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 void GreenLedTask(void *argument) {
-    while(1) {
+    while (1) {
         BSP_LED_Toggle(LED_GREEN);
         osDelay(1000);
+    }
+}
+
+void EncoderTask(void *argument) {
+    while (1) {
+        if (pan_encoder_triggered) {
+            PanTilt_update(&pan_tilt.pan);
+            pan_encoder_triggered = false;
+        }
+        if (tilt_encoder_triggered) {
+            PanTilt_update(&pan_tilt.tilt);
+            tilt_encoder_triggered = false;
+        }
+        osDelay(10); // TODO how much time is this?
     }
 }
 
@@ -126,19 +185,37 @@ int main(void) {
     SystemClock_Config();
     MX_GPIO_Init();
     MX_TIM3_Init();
-    const osThreadAttr_t greenLedTask_attributes = {
-        .name = "greenLedTask",
-        .priority = (osPriority_t) osPriorityNormal + 1,
+
+    const RotaryEncoder pan_encoder = (RotaryEncoder){X_CLK_GPIO_Port, X_CLK_Pin, X_DT_GPIO_Port, X_DT_Pin, 0, 0};
+    const RotaryEncoder tilt_encoder = (RotaryEncoder){Y_CLK_GPIO_Port, Y_CLK_Pin, Y_DT_GPIO_Port, Y_DT_Pin, 0, 0};
+    const Servo pan_servo = Servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
+    const Servo tilt_servo = Servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
+    pan_tilt = PanTilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
+    PanTilt_reset(&pan_tilt);
+
+    // led task
+    // const osThreadAttr_t greenLedTask_attributes = {
+    //     .name = "greenLedTask",
+    //     .priority = (osPriority_t) osPriorityNormal + 1,
+    //     .stack_size = 128 * 4
+    // };
+    // osThreadNew(GreenLedTask, NULL, &greenLedTask_attributes);
+
+    // encoder task
+    const osThreadAttr_t encoderTask_attributes = {
+        .name = "encoderTask",
+        .priority = (osPriority_t) osPriorityNormal + 2,
         .stack_size = 128 * 4
-};
-    osThreadNew(GreenLedTask, NULL, &greenLedTask_attributes);
+    };
+    osThreadNew(EncoderTask, NULL, &encoderTask_attributes);
+
     osKernelInitialize();
+
     MX_FREERTOS_Init();
-    BSP_LED_Init(LED_GREEN);
-    BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
+    //BSP_LED_Init(LED_GREEN);
+    //BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
     osKernelStart();
 
+    // should never get here
     while (1) {}
-
-    return 0;
 }
