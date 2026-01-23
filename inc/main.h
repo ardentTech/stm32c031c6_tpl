@@ -74,18 +74,18 @@ void Error_Handler(void);
 #define RCC_OSC_IN_GPIO_Port GPIOF
 #define RCC_OSC_OUT_Pin GPIO_PIN_1
 #define RCC_OSC_OUT_GPIO_Port GPIOF
-#define X_CLK_Pin GPIO_PIN_7
-#define X_CLK_GPIO_Port GPIOB
-#define X_CLK_EXTI_IRQn EXTI4_15_IRQn
-#define X_DT_Pin GPIO_PIN_6
-#define X_DT_GPIO_Port GPIOB
-#define X_DT_EXTI_IRQn EXTI4_15_IRQn
-#define Y_CLK_Pin GPIO_PIN_10
-#define Y_CLK_GPIO_Port GPIOA
-#define Y_CLK_EXTI_IRQn EXTI4_15_IRQn
-#define Y_DT_Pin GPIO_PIN_3
-#define Y_DT_GPIO_Port GPIOB
-#define Y_DT_EXTI_IRQn EXTI2_3_IRQn
+#define PAN_CLK_Pin GPIO_PIN_7
+#define PAN_CLK_GPIO_Port GPIOB
+#define PAN_CLK_EXTI_IRQn EXTI4_15_IRQn
+#define PAN_DT_Pin GPIO_PIN_6
+#define PAN_DT_GPIO_Port GPIOB
+#define PAN_DT_EXTI_IRQn EXTI4_15_IRQn
+#define TILT_CLK_Pin GPIO_PIN_10
+#define TILT_CLK_GPIO_Port GPIOA
+#define TILT_CLK_EXTI_IRQn EXTI4_15_IRQn
+#define TILT_DT_Pin GPIO_PIN_3
+#define TILT_DT_GPIO_Port GPIOB
+#define TILT_DT_EXTI_IRQn EXTI2_3_IRQn
 
 /* USER CODE BEGIN Private defines */
 

@@ -24,6 +24,6 @@ typedef struct {
 	uint16_t      store; // TODO make private
 } RotaryEncoder;
 
-int8_t read_encoder(RotaryEncoder *inc_enc);
+int8_t read_encoder(RotaryEncoder *rot_enc);
 
 #endif /* INC_ROTARY_ENCODER_H_ */

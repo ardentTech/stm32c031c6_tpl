@@ -106,7 +106,7 @@ void HardFault_Handler(void)
   */
 void EXTI2_3_IRQHandler(void)
 {
-    HAL_GPIO_EXTI_IRQHandler(Y_DT_Pin);
+    HAL_GPIO_EXTI_IRQHandler(TILT_DT_Pin);
 }
 
 /**
@@ -114,9 +114,9 @@ void EXTI2_3_IRQHandler(void)
  */
 void EXTI4_15_IRQHandler(void)
 {
-    HAL_GPIO_EXTI_IRQHandler(X_DT_Pin);
-    HAL_GPIO_EXTI_IRQHandler(X_CLK_Pin);
-    HAL_GPIO_EXTI_IRQHandler(Y_CLK_Pin);
+    HAL_GPIO_EXTI_IRQHandler(PAN_DT_Pin);
+    HAL_GPIO_EXTI_IRQHandler(PAN_CLK_Pin);
+    HAL_GPIO_EXTI_IRQHandler(TILT_CLK_Pin);
 }
 
 /**

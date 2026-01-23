@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.1)
-project(stm32c031c6_tpl C)
+project(pan_tilt_ctrl C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})

@@ -1,4 +1,4 @@
-add_executable(tpl
+add_executable(app
         app_freertos.c
         main.c
         pan_tilt.c
@@ -11,11 +11,11 @@ add_executable(tpl
         sysmem.c
 )
 
-target_link_libraries(tpl PUBLIC freertos)
-target_link_libraries(tpl PUBLIC cmsis6)
-target_link_libraries(tpl PUBLIC stm32)
+target_link_libraries(app PUBLIC freertos)
+target_link_libraries(app PUBLIC cmsis6)
+target_link_libraries(app PUBLIC stm32)
 
-target_include_directories(tpl PUBLIC
+target_include_directories(app PUBLIC
         ../inc
 )
 
