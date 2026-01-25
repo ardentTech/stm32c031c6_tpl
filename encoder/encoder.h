@@ -23,6 +23,6 @@ typedef struct {
     uint16_t      store;
 } EncoderState;
 
-RotationDirection encoder_process(EncoderState *state, LogicLevel clock, LogicLevel data);
+RotationDirection encoder_process(EncoderState *state, LogicLevel clock_signal, LogicLevel data_signal);
 
 #endif //PAN_TILT_CTRL_ENCODER_H

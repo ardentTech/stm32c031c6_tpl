@@ -14,6 +14,7 @@ add_executable(app
 target_link_libraries(app PUBLIC freertos)
 target_link_libraries(app PUBLIC cmsis6)
 target_link_libraries(app PUBLIC stm32)
+target_link_libraries(app PUBLIC encoder_lib)
 
 target_include_directories(app PUBLIC
         ../inc
