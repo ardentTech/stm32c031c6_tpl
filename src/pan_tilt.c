@@ -1,10 +1,3 @@
-/*
- * pan_tilt.c
- *
- *  Created on: Dec 11, 2025
- *      Author: jondbaker
- */
-
 #include "pan_tilt.h"
 
 PanTilt PanTilt_init(RotaryEncoder pan_encoder, Servo pan_servo, RotaryEncoder tilt_encoder, Servo tilt_servo) {
@@ -19,7 +12,7 @@ void PanTilt_reset(PanTilt *pan_tilt) {
 }
 
 void PanTilt_update(AxisController *axis) {
-    switch (read_encoder(&axis->encoder)) {
+    switch (encoder_read(&axis->encoder)) {
         case CLOCKWISE:
             Servo_step_cw(&axis->servo);
             break;

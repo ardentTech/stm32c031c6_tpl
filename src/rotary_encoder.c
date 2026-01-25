@@ -1,7 +1,7 @@
 #include "rotary_encoder.h"
 
 // TODO unit test
-int8_t read_encoder(RotaryEncoder *rot_enc) {
+int8_t encoder_read(RotaryEncoder *rot_enc) {
     static uint8_t rot_enc_table[] = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
 
     rot_enc->prevNextCode <<= 2;

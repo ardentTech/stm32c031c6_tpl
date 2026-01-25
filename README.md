@@ -14,7 +14,8 @@ A FreeRTOS application demonstrating servo control on a STM32 Nucleo C031c6 boar
 * CMake
 
 ## TODO
+- [ ] Encoder unit tests
 - [ ] Push encoder button to reset servo position
 - [ ] Remove BSP layer (LED, UART, blue btn)
-- [ ] Unit tests
-- [ ] Standardize naming
+  - [ ] Remove STM32 FreeRTOS wrapper(s) (e.g. `osDelay(1);` vs `vTaskDelay(1)`)
+- [ ] Code style
