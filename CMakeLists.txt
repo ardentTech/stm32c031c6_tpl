@@ -8,6 +8,7 @@ enable_language(C ASM)
 
 add_subdirectory(external)
 add_subdirectory(encoder)
+add_subdirectory(servo)
 if(CMAKE_BUILD_TYPE STREQUAL "Test")
     enable_testing() # this will include(CTest)
     add_subdirectory(ctest)
