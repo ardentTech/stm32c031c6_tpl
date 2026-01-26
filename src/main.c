@@ -218,8 +218,8 @@ int main(void) {
 
     const RotaryEncoder pan_encoder = (RotaryEncoder){PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin, 0, 0};
     const RotaryEncoder tilt_encoder = (RotaryEncoder){TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin, 0, 0};
-    const ServoState pan_servo = Servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
-    const ServoState tilt_servo = Servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
+    const Servo pan_servo = Servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
+    const Servo tilt_servo = Servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
     pan_tilt = PanTilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
     PanTilt_reset(&pan_tilt);
 

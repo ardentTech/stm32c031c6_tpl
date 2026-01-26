@@ -21,7 +21,7 @@ typedef struct {
     AxisController tilt;
 } PanTilt;
 
-PanTilt PanTilt_init(RotaryEncoder pan_encoder, ServoState pan_servo, RotaryEncoder tilt_encoder, ServoState tilt_servo);
+PanTilt PanTilt_init(RotaryEncoder pan_encoder, Servo pan_servo, RotaryEncoder tilt_encoder, Servo tilt_servo);
 
 void PanTilt_reset(PanTilt *pan_tilt);
 
