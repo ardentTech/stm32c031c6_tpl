@@ -8,11 +8,11 @@
 #ifndef INC_PAN_TILT_H_
 #define INC_PAN_TILT_H_
 
-#include "rotary_encoder.h"
+#include "stm32_encoder.h"
 #include "servo.h"
 
 typedef struct {
-    RotaryEncoder encoder;
+    Stm32Encoder encoder;
     Servo servo;
 } AxisController;
 
@@ -21,7 +21,7 @@ typedef struct {
     AxisController tilt;
 } PanTilt;
 
-PanTilt PanTilt_init(RotaryEncoder pan_encoder, Servo pan_servo, RotaryEncoder tilt_encoder, Servo tilt_servo);
+PanTilt PanTilt_init(Stm32Encoder pan_encoder, Servo pan_servo, Stm32Encoder tilt_encoder, Servo tilt_servo);
 
 void PanTilt_reset(PanTilt *pan_tilt);
 

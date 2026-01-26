@@ -1,6 +1,6 @@
 #include "pan_tilt.h"
 
-PanTilt PanTilt_init(RotaryEncoder pan_encoder, Servo pan_servo, RotaryEncoder tilt_encoder, Servo tilt_servo) {
+PanTilt PanTilt_init(Stm32Encoder pan_encoder, Servo pan_servo, Stm32Encoder tilt_encoder, Servo tilt_servo) {
     const AxisController pan = (AxisController){pan_encoder, pan_servo};
     const AxisController tilt = (AxisController){tilt_encoder, tilt_servo};
     return (PanTilt){pan, tilt};
@@ -12,11 +12,11 @@ void PanTilt_reset(PanTilt *pan_tilt) {
 }
 
 void PanTilt_update(AxisController *axis) {
-    switch (encoder_read(&axis->encoder)) {
+    switch (stm32_encoder_read(&axis->encoder)) {
         case CLOCKWISE:
             Servo_step_cw(&axis->servo);
             break;
-        case COUNTER_CLOCKWISE:
+        case COUNTERCLOCKWISE:
             Servo_step_ccw(&axis->servo);
             break;
         default: break;

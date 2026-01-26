@@ -2,6 +2,7 @@
 #include "main.h"
 
 #include "cmsis_os2.h"
+#include "stm32_encoder.h"
 
 TIM_HandleTypeDef htim3;
 static PanTilt pan_tilt;
@@ -216,12 +217,12 @@ int main(void) {
     MX_GPIO_Init();
     MX_TIM3_Init();
 
-    const RotaryEncoder pan_encoder = (RotaryEncoder){PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin, 0, 0};
-    const RotaryEncoder tilt_encoder = (RotaryEncoder){TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin, 0, 0};
-    const Servo pan_servo = Servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
-    const Servo tilt_servo = Servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
-    pan_tilt = PanTilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
-    PanTilt_reset(&pan_tilt);
+    const Stm32Encoder pan_encoder = stm32_encoder_init(PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin);
+    const Stm32Encoder tilt_encoder = stm32_encoder_init(TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin);
+    // const Servo pan_servo = Servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
+    // const Servo tilt_servo = Servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
+    // pan_tilt = PanTilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
+    // PanTilt_reset(&pan_tilt);
 
     // pan encoder task
     const osThreadAttr_t panEncoderTask_attributes = {

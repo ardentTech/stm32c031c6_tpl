@@ -23,6 +23,7 @@ typedef struct {
     uint16_t      store;
 } EncoderState;
 
+// TODO eventually this will return a struct with rotation and velocity
 RotationDirection encoder_process(EncoderState *state, LogicLevel clock_signal, LogicLevel data_signal);
 
 #endif //PAN_TILT_CTRL_ENCODER_H
