@@ -7,6 +7,7 @@
 TIM_HandleTypeDef htim3;
 static PanTilt pan_tilt;
 
+// TODO should these be binary semaphores?
 volatile static bool pan_clk_falling_triggered = false;
 volatile static bool pan_clk_rising_triggered = false;
 volatile static bool pan_dt_falling_triggered = false;
@@ -165,19 +166,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 void PanEncoderTask(void *argument) {
     while (1) {
         if (pan_clk_falling_triggered) {
-            PanTilt_update(&pan_tilt.pan);
+            pantilt_update(&pan_tilt.pan);
             pan_clk_falling_triggered = false;
         }
         if (pan_dt_falling_triggered) {
-            PanTilt_update(&pan_tilt.pan);
+            pantilt_update(&pan_tilt.pan);
             pan_dt_falling_triggered = false;
         }
         if (pan_clk_rising_triggered) {
-            PanTilt_update(&pan_tilt.pan);
+            pantilt_update(&pan_tilt.pan);
             pan_clk_rising_triggered = false;
         }
         if (pan_dt_rising_triggered) {
-            PanTilt_update(&pan_tilt.pan);
+            pantilt_update(&pan_tilt.pan);
             pan_dt_rising_triggered = false;
         }
         osDelay(1); // TODO how much time is this?
@@ -187,19 +188,19 @@ void PanEncoderTask(void *argument) {
 void TiltEncoderTask(void *argument) {
     while (1) {
         if (tilt_clk_falling_triggered) {
-            PanTilt_update(&pan_tilt.tilt);
+            pantilt_update(&pan_tilt.tilt);
             tilt_clk_falling_triggered = false;
         }
         if (tilt_dt_falling_triggered) {
-            PanTilt_update(&pan_tilt.tilt);
+            pantilt_update(&pan_tilt.tilt);
             tilt_dt_falling_triggered = false;
         }
         if (tilt_clk_rising_triggered) {
-            PanTilt_update(&pan_tilt.tilt);
+            pantilt_update(&pan_tilt.tilt);
             tilt_clk_rising_triggered = false;
         }
         if (tilt_dt_rising_triggered) {
-            PanTilt_update(&pan_tilt.tilt);
+            pantilt_update(&pan_tilt.tilt);
             tilt_dt_rising_triggered = false;
         }
         osDelay(1); // TODO how much time is this?
@@ -219,10 +220,10 @@ int main(void) {
 
     const Stm32Encoder pan_encoder = stm32_encoder_init(PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin);
     const Stm32Encoder tilt_encoder = stm32_encoder_init(TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin);
-    // const Servo pan_servo = Servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
-    // const Servo tilt_servo = Servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
-    // pan_tilt = PanTilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
-    // PanTilt_reset(&pan_tilt);
+    const Stm32Servo pan_servo = servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
+    const Stm32Servo tilt_servo = servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
+    pan_tilt = pantilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
+    pantilt_reset(&pan_tilt);
 
     // pan encoder task
     const osThreadAttr_t panEncoderTask_attributes = {
@@ -247,4 +248,9 @@ int main(void) {
 
     // should never get here
     while (1) {}
+}
+
+void assert_failed(uint8_t *file, uint32_t line) {
+    //
+    GPIOA->BSRR = GPIO_BSRR_BS5;
 }

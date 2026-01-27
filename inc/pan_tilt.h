@@ -1,10 +1,3 @@
-/*
- * pan_tilt.h
- *
- *  Created on: Dec 11, 2025
- *      Author: jondbaker
- */
-
 #ifndef INC_PAN_TILT_H_
 #define INC_PAN_TILT_H_
 
@@ -13,7 +6,7 @@
 
 typedef struct {
     Stm32Encoder encoder;
-    Servo servo;
+    Stm32Servo servo;
 } AxisController;
 
 typedef struct {
@@ -21,10 +14,10 @@ typedef struct {
     AxisController tilt;
 } PanTilt;
 
-PanTilt PanTilt_init(Stm32Encoder pan_encoder, Servo pan_servo, Stm32Encoder tilt_encoder, Servo tilt_servo);
+PanTilt pantilt_init(Stm32Encoder pan_encoder, Stm32Servo pan_servo, Stm32Encoder tilt_encoder, Stm32Servo tilt_servo);
 
-void PanTilt_reset(PanTilt *pan_tilt);
+void pantilt_reset(PanTilt *pan_tilt);
 
-void PanTilt_update(AxisController *axis);
+void pantilt_update(AxisController *axis);
 
 #endif /* INC_PAN_TILT_H_ */

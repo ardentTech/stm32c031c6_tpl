@@ -1,10 +1,3 @@
-/*
- * servo.h
- *
- *  Created on: Dec 6, 2025
- *      Author: jondbaker
- */
-
 #ifndef INC_SERVO_H_
 #define INC_SERVO_H_
 
@@ -18,20 +11,18 @@ typedef struct {
     uint16_t min_position_us;
     uint16_t max_position_us;
     uint16_t position_us;
-    uint16_t step_us;
-} Servo;
+} Stm32Servo;
 
-Servo Servo_init(
+Stm32Servo servo_init(
     TIM_HandleTypeDef *timer,
     uint32_t channel,
     uint16_t min_position_us,
     uint16_t max_position_us
 );
 
-void Servo_rotate(Servo *servo, uint16_t angle);
-
-void Servo_step_cw(Servo *servo);
-
-void Servo_step_ccw(Servo *servo);
+void servo_reset(Stm32Servo *servo);
+void servo_rotate(Stm32Servo *servo, uint16_t angle);
+void servo_step_cw(Stm32Servo *servo);
+void servo_step_ccw(Stm32Servo *servo);
 
 #endif /* INC_SERVO_H_ */

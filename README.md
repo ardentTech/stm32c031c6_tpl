@@ -24,4 +24,5 @@ TODO diagram
 - [ ] Remove BSP layer (LED, UART, blue btn)
 - [ ] Remove STM32 FreeRTOS wrapper(s) (e.g. `osDelay(1);` vs `vTaskDelay(1)`)
 - [ ] Code style
-- [ ] Unit test mocks
+- [ ] Unit test mocks?
+- [ ] Encoder angular velocity
