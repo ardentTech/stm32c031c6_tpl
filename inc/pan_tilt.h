@@ -2,7 +2,7 @@
 #define INC_PAN_TILT_H_
 
 #include "stm32_encoder.h"
-#include "servo.h"
+#include "stm32_servo.h"
 
 typedef struct {
     Stm32Encoder encoder;

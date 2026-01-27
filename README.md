@@ -19,10 +19,12 @@ TODO diagram
 ## TODO
 - [x] Encoder unit tests
 - [x] Servo unit tests
+- [ ] TIM2 encoder mode
 - [ ] Clean up STM32 init code
 - [ ] Push encoder button to reset servo position
 - [ ] Remove BSP layer (LED, UART, blue btn)
 - [ ] Remove STM32 FreeRTOS wrapper(s) (e.g. `osDelay(1);` vs `vTaskDelay(1)`)
-- [ ] Code style
+- [ ] Consistent code style
 - [ ] Unit test mocks?
 - [ ] Encoder angular velocity
+- [ ] Table of tasks names and priorities

@@ -3,12 +3,15 @@
 
 #include "cmsis_os2.h"
 #include "stm32_encoder.h"
+#include <FreeRTOS.h>
+#include <semphr.h>
 
 TIM_HandleTypeDef htim3;
 static PanTilt pan_tilt;
 
+SemaphoreHandle_t semPtr = NULL;
 // TODO should these be binary semaphores?
-volatile static bool pan_clk_falling_triggered = false;
+//volatile static bool pan_clk_falling_triggered = false;
 volatile static bool pan_clk_rising_triggered = false;
 volatile static bool pan_dt_falling_triggered = false;
 volatile static bool pan_dt_rising_triggered = false;
@@ -32,7 +35,8 @@ void YEncoderTask(void *argument);
 
 void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == PAN_CLK_Pin) {
-        pan_clk_falling_triggered = true;
+        //pan_clk_falling_triggered = true;
+        xSemaphoreGive(semPtr);
     }
     if (GPIO_Pin == PAN_DT_Pin) {
         pan_dt_falling_triggered = true;
@@ -165,9 +169,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 void PanEncoderTask(void *argument) {
     while (1) {
-        if (pan_clk_falling_triggered) {
+        if (xSemaphoreTake(semPtr, 0) == pdPASS) {
             pantilt_update(&pan_tilt.pan);
-            pan_clk_falling_triggered = false;
+            // TODO does this need to give semaphore back?
+            //pan_clk_falling_triggered = false;
         }
         if (pan_dt_falling_triggered) {
             pantilt_update(&pan_tilt.pan);
@@ -217,6 +222,9 @@ int main(void) {
     SystemClock_Config();
     MX_GPIO_Init();
     MX_TIM3_Init();
+
+    semPtr = xSemaphoreCreateBinary();
+    assert_param(semPtr != NULL);
 
     const Stm32Encoder pan_encoder = stm32_encoder_init(PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin);
     const Stm32Encoder tilt_encoder = stm32_encoder_init(TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin);

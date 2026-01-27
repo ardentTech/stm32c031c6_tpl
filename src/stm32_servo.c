@@ -1,4 +1,4 @@
-#include "servo.h"
+#include "stm32_servo.h"
 
 #define DEGREES_PER_STEP 5
 #define MAX_ROTATION_DEGREES 180

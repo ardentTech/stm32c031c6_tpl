@@ -3,6 +3,7 @@
 //
 #include "encoder.h"
 
+// TODO should this return a count instead of a direction?
 RotationDirection encoder_process(
     EncoderState *state,
     const LogicLevel clock_signal,

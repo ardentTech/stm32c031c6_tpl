@@ -29,7 +29,7 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32c0xx_hal.h"
 #include "pan_tilt.h"
-#include "servo.h"
+#include "stm32_servo.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
