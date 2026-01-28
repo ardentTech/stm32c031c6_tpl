@@ -9,16 +9,13 @@
 TIM_HandleTypeDef htim3;
 static PanTilt pan_tilt;
 
-SemaphoreHandle_t semPtr = NULL;
-// TODO should these be binary semaphores?
-//volatile static bool pan_clk_falling_triggered = false;
-volatile static bool pan_clk_rising_triggered = false;
-volatile static bool pan_dt_falling_triggered = false;
-volatile static bool pan_dt_rising_triggered = false;
-volatile static bool tilt_clk_falling_triggered = false;
-volatile static bool tilt_clk_rising_triggered = false;
-volatile static bool tilt_dt_falling_triggered = false;
-volatile static bool tilt_dt_rising_triggered = false;
+void pan_encoder_task_init(void);
+void pan_encoder_task_notify(void);
+void tilt_encoder_task_init(void);
+void tilt_encoder_task_notify(void);
+
+TaskHandle_t pan_encoder_task_handle;
+TaskHandle_t tilt_encoder_task_handle;
 
 // these values are from manually testing the two Tower SG90s in the adafruit pan+tilt kit
 const uint16_t PAN_MIN_PULSE = 500;
@@ -30,37 +27,70 @@ void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM3_Init(void);
-void PanEncoderTask(void *argument);
-void YEncoderTask(void *argument);
+void pan_encoder_task(void *argument);
+void tilt_encoder_task(void *argument);
+
+void pan_encoder_task(void *argument) {
+    static uint32_t thread_notification;
+    while (1) {
+        /* Sleep until we are notified of a state change by an
+        * interrupt handler. Note the first parameter is pdTRUE,
+        * which has the effect of clearing the task's notification
+        * value back to 0, making the notification value act like
+        * a binary (rather than a counting) semaphore.  */
+        thread_notification = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if (thread_notification) {
+            pantilt_update(&pan_tilt.pan);
+        }
+        // TODO i don't think an explicit delay is needed
+    }
+}
+
+void tilt_encoder_task(void *argument) {
+    static uint32_t thread_notification;
+    while (1) {
+        /* Sleep until we are notified of a state change by an
+        * interrupt handler. Note the first parameter is pdTRUE,
+        * which has the effect of clearing the task's notification
+        * value back to 0, making the notification value act like
+        * a binary (rather than a counting) semaphore.  */
+        thread_notification = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if (thread_notification) {
+            pantilt_update(&pan_tilt.tilt);
+        }
+        // TODO i don't think an explicit delay is needed
+    }
+}
+
+void pan_encoder_task_notify() {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    // Notify the thread so it will wake up when the ISR is complete
+    vTaskNotifyGiveFromISR(pan_encoder_task_handle, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void tilt_encoder_task_notify() {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    // Notify the thread so it will wake up when the ISR is complete
+    vTaskNotifyGiveFromISR(tilt_encoder_task_handle, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
 
 void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
-    if (GPIO_Pin == PAN_CLK_Pin) {
-        //pan_clk_falling_triggered = true;
-        xSemaphoreGive(semPtr);
+    if (GPIO_Pin == PAN_CLK_Pin || GPIO_Pin == PAN_DT_Pin) {
+        pan_encoder_task_notify();
     }
-    if (GPIO_Pin == PAN_DT_Pin) {
-        pan_dt_falling_triggered = true;
-    }
-    if (GPIO_Pin == TILT_CLK_Pin) {
-        tilt_clk_falling_triggered = true;
-    }
-    if (GPIO_Pin == TILT_DT_Pin) {
-        tilt_dt_falling_triggered = true;
+    if (GPIO_Pin == TILT_CLK_Pin || GPIO_Pin == TILT_DT_Pin) {
+        tilt_encoder_task_notify();
     }
 }
 
 void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
-    if (GPIO_Pin == PAN_CLK_Pin) {
-        pan_clk_rising_triggered = true;
+    if (GPIO_Pin == PAN_CLK_Pin || GPIO_Pin == PAN_DT_Pin) {
+        pan_encoder_task_notify();
     }
-    if (GPIO_Pin == PAN_DT_Pin) {
-        pan_dt_rising_triggered = true;
-    }
-    if (GPIO_Pin == TILT_CLK_Pin) {
-        tilt_clk_rising_triggered = true;
-    }
-    if (GPIO_Pin == TILT_DT_Pin) {
-        tilt_dt_rising_triggered = true;
+    if (GPIO_Pin == TILT_CLK_Pin || GPIO_Pin == TILT_DT_Pin) {
+        tilt_encoder_task_notify();
     }
 }
 
@@ -167,51 +197,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
 }
 
-void PanEncoderTask(void *argument) {
-    while (1) {
-        if (xSemaphoreTake(semPtr, 0) == pdPASS) {
-            pantilt_update(&pan_tilt.pan);
-            // TODO does this need to give semaphore back?
-            //pan_clk_falling_triggered = false;
-        }
-        if (pan_dt_falling_triggered) {
-            pantilt_update(&pan_tilt.pan);
-            pan_dt_falling_triggered = false;
-        }
-        if (pan_clk_rising_triggered) {
-            pantilt_update(&pan_tilt.pan);
-            pan_clk_rising_triggered = false;
-        }
-        if (pan_dt_rising_triggered) {
-            pantilt_update(&pan_tilt.pan);
-            pan_dt_rising_triggered = false;
-        }
-        osDelay(1); // TODO how much time is this?
-    }
-}
-
-void TiltEncoderTask(void *argument) {
-    while (1) {
-        if (tilt_clk_falling_triggered) {
-            pantilt_update(&pan_tilt.tilt);
-            tilt_clk_falling_triggered = false;
-        }
-        if (tilt_dt_falling_triggered) {
-            pantilt_update(&pan_tilt.tilt);
-            tilt_dt_falling_triggered = false;
-        }
-        if (tilt_clk_rising_triggered) {
-            pantilt_update(&pan_tilt.tilt);
-            tilt_clk_rising_triggered = false;
-        }
-        if (tilt_dt_rising_triggered) {
-            pantilt_update(&pan_tilt.tilt);
-            tilt_dt_rising_triggered = false;
-        }
-        osDelay(1); // TODO how much time is this?
-    }
-}
-
 void Error_Handler(void) {
     __disable_irq();
     while (1) {}
@@ -223,9 +208,6 @@ int main(void) {
     MX_GPIO_Init();
     MX_TIM3_Init();
 
-    semPtr = xSemaphoreCreateBinary();
-    assert_param(semPtr != NULL);
-
     const Stm32Encoder pan_encoder = stm32_encoder_init(PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin);
     const Stm32Encoder tilt_encoder = stm32_encoder_init(TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin);
     const Stm32Servo pan_servo = servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
@@ -233,21 +215,8 @@ int main(void) {
     pan_tilt = pantilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
     pantilt_reset(&pan_tilt);
 
-    // pan encoder task
-    const osThreadAttr_t panEncoderTask_attributes = {
-        .name = "panEncoderTask",
-        .priority = (osPriority_t) osPriorityNormal + 2,
-        .stack_size = 128 * 4
-    };
-    osThreadNew(PanEncoderTask, NULL, &panEncoderTask_attributes);
-
-    // tilt encoder task
-    const osThreadAttr_t tiltEncoderTask_attributes = {
-        .name = "tiltEncoderTask",
-        .priority = (osPriority_t) osPriorityNormal + 1,
-        .stack_size = 128 * 4
-    };
-    osThreadNew(TiltEncoderTask, NULL, &tiltEncoderTask_attributes);
+    pan_encoder_task_init();
+    tilt_encoder_task_init();
 
     osKernelInitialize();
 
@@ -258,7 +227,25 @@ int main(void) {
     while (1) {}
 }
 
+void pan_encoder_task_init() {
+    const osThreadAttr_t panEncoderTask_attributes = {
+        .name = "panEncoderTask",
+        .priority = (osPriority_t) osPriorityNormal + 2,
+        .stack_size = 128 * 4
+    };
+    pan_encoder_task_handle = osThreadNew(pan_encoder_task, NULL, &panEncoderTask_attributes);
+}
+
+void tilt_encoder_task_init() {
+    const osThreadAttr_t tiltEncoderTask_attributes = {
+        .name = "tiltEncoderTask",
+        .priority = (osPriority_t) osPriorityNormal + 1,
+        .stack_size = 128 * 4
+    };
+    tilt_encoder_task_handle = osThreadNew(tilt_encoder_task, NULL, &tiltEncoderTask_attributes);
+}
+
 void assert_failed(uint8_t *file, uint32_t line) {
-    //
+    // TODO should this just call into Error_Handler?
     GPIOA->BSRR = GPIO_BSRR_BS5;
 }
