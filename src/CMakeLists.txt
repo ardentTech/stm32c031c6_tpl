@@ -2,11 +2,11 @@ add_executable(app
         app_freertos.c
         main.c
         pan_tilt.c
-        stm32_servo.c
         stm32_encoder.c
+        stm32_int.c
+        stm32_servo.c
         stm32c0xx_hal_msp.c
         stm32c0xx_hal_timebase_tim.c
-        stm32c0xx_it.c
         syscalls.c
         sysmem.c
 )
