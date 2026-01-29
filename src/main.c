@@ -1,10 +1,11 @@
 #include <FreeRTOS.h>
-#include <semphr.h>
-#include "main.h"
+#include <task.h>
 
 #include "cmsis_os2.h"
+#include "error.h"
 #include "pan_tilt.h"
 #include "stm32_encoder.h"
+#include "stm32_gpio.h"
 #include "stm32_servo.h"
 #include "stm32_sysclock.h"
 #include "stm32_tim.h"
@@ -26,9 +27,7 @@ const uint16_t PAN_MAX_PULSE = 2400;
 const uint16_t TILT_MIN_PULSE = 1300;
 const uint16_t TILT_MAX_PULSE = 2400;
 
-//void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
-static void MX_GPIO_Init(void);
 void pan_encoder_task(void *argument);
 void tilt_encoder_task(void *argument);
 
@@ -96,54 +95,22 @@ void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
     }
 }
 
-static void MX_GPIO_Init(void) {
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
-    /* USER CODE BEGIN MX_GPIO_Init_1 */
-
-    /* USER CODE END MX_GPIO_Init_1 */
-
-    /* GPIO Ports Clock Enable */
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-
-    /*Configure GPIO pin : TILT_CLK_Pin */
-    GPIO_InitStruct.Pin = TILT_CLK_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(TILT_CLK_GPIO_Port, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : TILT_DT_Pin PAN_DT_Pin PAN_CLK_Pin */
-    GPIO_InitStruct.Pin = TILT_DT_Pin|PAN_DT_Pin|PAN_CLK_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    /* EXTI interrupt init*/
-    HAL_NVIC_SetPriority(EXTI2_3_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(EXTI2_3_IRQn);
-
-    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
-}
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM1) {
         HAL_IncTick();
     }
 }
 
-void Error_Handler(void) {
+void error_handler(void) {
     __disable_irq();
     while (1) {}
 }
 
 int main(void) {
     HAL_Init();
-    clock_init(Error_Handler);
-    MX_GPIO_Init();
-    tim3_init(&htim3, Error_Handler);
+    clock_init(error_handler);
+    gpio_init();
+    tim3_init(&htim3, error_handler);
 
     const Stm32Encoder pan_encoder = stm32_encoder_init(PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin);
     const Stm32Encoder tilt_encoder = stm32_encoder_init(TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin);
@@ -183,6 +150,6 @@ void tilt_encoder_task_init() {
 }
 
 void assert_failed(uint8_t *file, uint32_t line) {
-    // TODO should this just call into Error_Handler?
+    // TODO should this just call into error_handler?
     GPIOA->BSRR = GPIO_BSRR_BS5;
 }

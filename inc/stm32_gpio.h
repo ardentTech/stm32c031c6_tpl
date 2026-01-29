@@ -23,5 +23,6 @@
 
 void EXTI2_3_IRQHandler(void);
 void EXTI4_15_IRQHandler(void);
+void gpio_init(void);
 
 #endif //PAN_TILT_CTRL_STM32_GPIO_H
