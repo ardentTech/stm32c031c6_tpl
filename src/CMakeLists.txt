@@ -5,6 +5,7 @@ add_executable(app
         stm32_encoder.c
         stm32_int.c
         stm32_servo.c
+        stm32_tim.c
         stm32c0xx_hal_msp.c
         stm32c0xx_hal_timebase_tim.c
         syscalls.c
