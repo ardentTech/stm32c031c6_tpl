@@ -6,6 +6,7 @@
 #include "pan_tilt.h"
 #include "stm32_encoder.h"
 #include "stm32_servo.h"
+#include "stm32_sysclock.h"
 #include "stm32_tim.h"
 
 TIM_HandleTypeDef htim3;
@@ -25,10 +26,9 @@ const uint16_t PAN_MAX_PULSE = 2400;
 const uint16_t TILT_MIN_PULSE = 1300;
 const uint16_t TILT_MAX_PULSE = 2400;
 
-void SystemClock_Config(void);
+//void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 static void MX_GPIO_Init(void);
-//static void MX_TIM3_Init(void);
 void pan_encoder_task(void *argument);
 void tilt_encoder_task(void *argument);
 
@@ -128,71 +128,6 @@ static void MX_GPIO_Init(void) {
     HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 }
 
-// static void MX_TIM3_Init(void) {
-//     TIM_MasterConfigTypeDef sMasterConfig = {0};
-//     TIM_OC_InitTypeDef sConfigOC = {0};
-//     htim3.Instance = TIM3;
-//     htim3.Init.Prescaler = 48-1;
-//     htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-//     htim3.Init.Period = 20000-1;
-//     htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-//     htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-//     if (HAL_TIM_PWM_Init(&htim3) != HAL_OK) {
-//         Error_Handler();
-//     }
-//     sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-//     sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-//     if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK) {
-//         Error_Handler();
-//     }
-//     sConfigOC.OCMode = TIM_OCMODE_PWM1;
-//     sConfigOC.Pulse = 0;
-//     sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-//     sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-//     if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
-//         Error_Handler();
-//     }
-//     if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
-//         Error_Handler();
-//     }
-//     HAL_TIM_Base_Start(&htim3);
-//     if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1) != HAL_OK) {
-//         Error_Handler();
-//     }
-//     if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2) != HAL_OK) {
-//         Error_Handler();
-//     }
-//     HAL_TIM_MspPostInit(&htim3);
-// }
-
-void SystemClock_Config(void) {
-    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-    __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_1);
-
-    /** Initializes the RCC Oscillators according to the specified parameters
-    * in the RCC_OscInitTypeDef structure.
-    */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-        Error_Handler();
-    }
-
-    /** Initializes the CPU, AHB and APB buses clocks
-    */
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1;
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
-    RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
-    RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
-    RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
-
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM1) {
         HAL_IncTick();
@@ -206,7 +141,7 @@ void Error_Handler(void) {
 
 int main(void) {
     HAL_Init();
-    SystemClock_Config();
+    clock_init(Error_Handler);
     MX_GPIO_Init();
     tim3_init(&htim3, Error_Handler);
 

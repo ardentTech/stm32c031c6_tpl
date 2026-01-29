@@ -2,6 +2,7 @@ add_executable(app
         app_freertos.c
         main.c
         pan_tilt.c
+        stm32_sysclock.c
         stm32_encoder.c
         stm32_int.c
         stm32_servo.c

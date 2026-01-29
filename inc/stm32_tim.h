@@ -5,6 +5,7 @@
 #ifndef PAN_TILT_CTRL_STM32_TIM_H
 #define PAN_TILT_CTRL_STM32_TIM_H
 
+#include "stm32c0xx_hal.h"
 #include "stm32c0xx_hal_tim.h"
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);

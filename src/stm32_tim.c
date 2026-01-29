@@ -1,7 +1,6 @@
 //
 // Created by jondbaker on 1/29/26.
 //
-#include "stm32c0xx_hal.h"
 #include "stm32_tim.h"
 
 void tim3_init(TIM_HandleTypeDef* htim3, void (*Error_Handler)(void)) {
