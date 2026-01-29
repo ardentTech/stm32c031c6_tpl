@@ -8,8 +8,10 @@ void EXTI2_3_IRQHandler(void) {
 }
 
 void EXTI4_15_IRQHandler(void) {
+    HAL_GPIO_EXTI_IRQHandler(PAN_BTN_Pin);
     HAL_GPIO_EXTI_IRQHandler(PAN_DT_Pin);
     HAL_GPIO_EXTI_IRQHandler(PAN_CLK_Pin);
+    HAL_GPIO_EXTI_IRQHandler(TILT_BTN_Pin);
     HAL_GPIO_EXTI_IRQHandler(TILT_CLK_Pin);
 }
 
@@ -30,6 +32,16 @@ void gpio_init(void) {
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(TILT_CLK_GPIO_Port, &GPIO_InitStruct);
+
+    // PAN_BTN_Pin
+    GPIO_InitStruct.Pin = PAN_BTN_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(PAN_BTN_GPIO_Port, &GPIO_InitStruct);
+
+    // TILT_BTN_Pin
+    GPIO_InitStruct.Pin = TILT_BTN_Pin;
+    HAL_GPIO_Init(TILT_BTN_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : TILT_DT_Pin PAN_DT_Pin PAN_CLK_Pin */
     GPIO_InitStruct.Pin = TILT_DT_Pin|PAN_DT_Pin|PAN_CLK_Pin;
