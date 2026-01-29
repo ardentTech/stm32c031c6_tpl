@@ -13,10 +13,9 @@
 TIM_HandleTypeDef htim3;
 static PanTilt pan_tilt;
 
+void task_notify(TaskHandle_t task_handle);
 void pan_encoder_task_init(void);
-void pan_encoder_task_notify(void);
 void tilt_encoder_task_init(void);
-void tilt_encoder_task_notify(void);
 
 TaskHandle_t pan_encoder_task_handle;
 TaskHandle_t tilt_encoder_task_handle;
@@ -34,64 +33,45 @@ void tilt_encoder_task(void *argument);
 void pan_encoder_task(void *argument) {
     static uint32_t thread_notification;
     while (1) {
-        /* Sleep until we are notified of a state change by an
-        * interrupt handler. Note the first parameter is pdTRUE,
-        * which has the effect of clearing the task's notification
-        * value back to 0, making the notification value act like
-        * a binary (rather than a counting) semaphore.  */
         thread_notification = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (thread_notification) {
             pantilt_update(&pan_tilt.pan);
         }
-        // TODO i don't think an explicit delay is needed
     }
 }
 
 void tilt_encoder_task(void *argument) {
     static uint32_t thread_notification;
     while (1) {
-        /* Sleep until we are notified of a state change by an
-        * interrupt handler. Note the first parameter is pdTRUE,
-        * which has the effect of clearing the task's notification
-        * value back to 0, making the notification value act like
-        * a binary (rather than a counting) semaphore.  */
         thread_notification = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (thread_notification) {
             pantilt_update(&pan_tilt.tilt);
         }
-        // TODO i don't think an explicit delay is needed
     }
 }
 
-void pan_encoder_task_notify() {
+void task_notify(TaskHandle_t task_handle) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     // Notify the thread so it will wake up when the ISR is complete
-    vTaskNotifyGiveFromISR(pan_encoder_task_handle, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
-
-void tilt_encoder_task_notify() {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    // Notify the thread so it will wake up when the ISR is complete
-    vTaskNotifyGiveFromISR(tilt_encoder_task_handle, &xHigherPriorityTaskWoken);
+    vTaskNotifyGiveFromISR(task_handle, &xHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == PAN_CLK_Pin || GPIO_Pin == PAN_DT_Pin) {
-        pan_encoder_task_notify();
+        task_notify(pan_encoder_task_handle);
     }
     if (GPIO_Pin == TILT_CLK_Pin || GPIO_Pin == TILT_DT_Pin) {
-        tilt_encoder_task_notify();
+        task_notify(tilt_encoder_task_handle);
     }
 }
 
 void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == PAN_CLK_Pin || GPIO_Pin == PAN_DT_Pin) {
-        pan_encoder_task_notify();
+        task_notify(pan_encoder_task_handle);
     }
     if (GPIO_Pin == TILT_CLK_Pin || GPIO_Pin == TILT_DT_Pin) {
-        tilt_encoder_task_notify();
+        task_notify(tilt_encoder_task_handle);
     }
 }
 
@@ -103,6 +83,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 void error_handler(void) {
     __disable_irq();
+    GPIOA->BSRR = GPIO_BSRR_BS5; // turn LED on
     while (1) {}
 }
 
@@ -114,10 +95,12 @@ int main(void) {
 
     const Stm32Encoder pan_encoder = stm32_encoder_init(PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin);
     const Stm32Encoder tilt_encoder = stm32_encoder_init(TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin);
+
     const Stm32Servo pan_servo = servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
     const Stm32Servo tilt_servo = servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
+
     pan_tilt = pantilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
-    pantilt_reset(&pan_tilt);
+    pantilt_reset(&pan_tilt); // start servos in neutral position
 
     pan_encoder_task_init();
     tilt_encoder_task_init();
@@ -131,6 +114,7 @@ int main(void) {
     while (1) {}
 }
 
+// Initializes the pan encoder task.
 void pan_encoder_task_init() {
     const osThreadAttr_t panEncoderTask_attributes = {
         .name = "panEncoderTask",
@@ -140,6 +124,7 @@ void pan_encoder_task_init() {
     pan_encoder_task_handle = osThreadNew(pan_encoder_task, NULL, &panEncoderTask_attributes);
 }
 
+// Initializes the tilt encoder task.
 void tilt_encoder_task_init() {
     const osThreadAttr_t tiltEncoderTask_attributes = {
         .name = "tiltEncoderTask",
@@ -150,6 +135,5 @@ void tilt_encoder_task_init() {
 }
 
 void assert_failed(uint8_t *file, uint32_t line) {
-    // TODO should this just call into error_handler?
-    GPIOA->BSRR = GPIO_BSRR_BS5;
+    error_handler();
 }
