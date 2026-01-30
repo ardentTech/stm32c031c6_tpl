@@ -20,7 +20,6 @@ A FreeRTOS application demonstrating servo control on a STM32 Nucleo C031C6 boar
 - [x] Clean up STM32 init code
 - [x] Push encoder button to reset servo position
 - [x] Remove BSP layer (LED, UART, blue btn)
-- [ ] Remove STM32 FreeRTOS wrapper(s) (e.g. `osDelay(1);` vs `vTaskDelay(1)`)
 - [x] Consistent code style
 - [ ] Encoder angular velocity
 - [ ] Table of tasks names and priorities?

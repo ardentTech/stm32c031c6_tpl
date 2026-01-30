@@ -15,9 +15,8 @@ typedef struct {
 } PanTilt;
 
 PanTilt pantilt_init(Stm32Encoder pan_encoder, Stm32Servo pan_servo, Stm32Encoder tilt_encoder, Stm32Servo tilt_servo);
-
 void pantilt_reset(PanTilt *pan_tilt);
-
+void pantilt_reset_servo(AxisController *axis);
 void pantilt_update(AxisController *axis);
 
 #endif /* INC_PAN_TILT_H_ */

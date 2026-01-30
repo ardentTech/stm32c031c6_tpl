@@ -30,7 +30,7 @@ const uint16_t PAN_MAX_PULSE = 2400;
 const uint16_t TILT_MIN_PULSE = 1300;
 const uint16_t TILT_MAX_PULSE = 2400;
 
-void MX_FREERTOS_Init(void);
+void freertos_init(void);
 void pan_btn_task(void *argument);
 void pan_encoder_task(void *argument);
 void tilt_encoder_task(void *argument);
@@ -41,7 +41,7 @@ void pan_btn_task(void *argument) {
     while (1) {
         thread_notification = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (thread_notification) {
-            servo_reset(&pan_tilt.pan.servo);
+            pantilt_reset_servo(&pan_tilt.pan);
         }
     }
 }
@@ -61,7 +61,7 @@ void tilt_btn_task(void *argument) {
     while (1) {
         thread_notification = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (thread_notification) {
-            servo_reset(&pan_tilt.tilt.servo);
+            pantilt_reset_servo(&pan_tilt.tilt);
         }
     }
 }
@@ -186,7 +186,7 @@ int main(void) {
 
     osKernelInitialize();
 
-    MX_FREERTOS_Init();
+    freertos_init();
     osKernelStart();
 
     // should never get here
