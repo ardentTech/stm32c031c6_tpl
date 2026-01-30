@@ -6,9 +6,10 @@ PanTilt pantilt_init(Stm32Encoder pan_encoder, Stm32Servo pan_servo, Stm32Encode
     return (PanTilt){pan, tilt};
 }
 
+// Resets both servos.
 void pantilt_reset(PanTilt *pan_tilt) {
-    servo_rotate(&pan_tilt->pan.servo, 90);
-    servo_rotate(&pan_tilt->tilt.servo, 90);
+    servo_reset(&pan_tilt->pan.servo);
+    servo_reset(&pan_tilt->tilt.servo);
 }
 
 void pantilt_update(AxisController *axis) {

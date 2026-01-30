@@ -41,7 +41,7 @@ void pan_btn_task(void *argument) {
     while (1) {
         thread_notification = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (thread_notification) {
-            servo_rotate(&pan_tilt.pan.servo, 90);
+            servo_reset(&pan_tilt.pan.servo);
         }
     }
 }
@@ -61,7 +61,7 @@ void tilt_btn_task(void *argument) {
     while (1) {
         thread_notification = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (thread_notification) {
-            servo_rotate(&pan_tilt.tilt.servo, 90);
+            servo_reset(&pan_tilt.tilt.servo);
         }
     }
 }
@@ -113,38 +113,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
 }
 
+// Turn on on-board LED and enter black hole.
 void error_handler(void) {
     __disable_irq();
-    GPIOA->BSRR = GPIO_BSRR_BS5; // turn LED on
-    while (1) {}
-}
-
-int main(void) {
-    HAL_Init();
-    clock_init(error_handler);
-    gpio_init();
-    tim3_init(&htim3, error_handler);
-
-    const Stm32Encoder pan_encoder = stm32_encoder_init(PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin);
-    const Stm32Encoder tilt_encoder = stm32_encoder_init(TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin);
-
-    const Stm32Servo pan_servo = servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
-    const Stm32Servo tilt_servo = servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
-
-    pan_tilt = pantilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
-    pantilt_reset(&pan_tilt); // start servos in neutral position
-
-    pan_btn_task_init();
-    pan_encoder_task_init();
-    tilt_btn_task_init();
-    tilt_encoder_task_init();
-
-    osKernelInitialize();
-
-    MX_FREERTOS_Init();
-    osKernelStart();
-
-    // should never get here
+    GPIOA->BSRR = GPIO_BSRR_BS5;
     while (1) {}
 }
 
@@ -190,4 +162,33 @@ void tilt_encoder_task_init() {
 
 void assert_failed(uint8_t *file, uint32_t line) {
     error_handler();
+}
+
+int main(void) {
+    HAL_Init();
+    clock_init(error_handler);
+    gpio_init();
+    tim3_init(&htim3, error_handler);
+
+    const Stm32Encoder pan_encoder = stm32_encoder_init(PAN_CLK_GPIO_Port, PAN_CLK_Pin, PAN_DT_GPIO_Port, PAN_DT_Pin);
+    const Stm32Encoder tilt_encoder = stm32_encoder_init(TILT_CLK_GPIO_Port, TILT_CLK_Pin, TILT_DT_GPIO_Port, TILT_DT_Pin);
+
+    const Stm32Servo pan_servo = servo_init(&htim3, TIM_CHANNEL_1, PAN_MIN_PULSE, PAN_MAX_PULSE);
+    const Stm32Servo tilt_servo = servo_init(&htim3, TIM_CHANNEL_2, TILT_MIN_PULSE, TILT_MAX_PULSE);
+
+    pan_tilt = pantilt_init(pan_encoder, pan_servo, tilt_encoder, tilt_servo);
+    pantilt_reset(&pan_tilt); // start servos in neutral position
+
+    pan_btn_task_init();
+    pan_encoder_task_init();
+    tilt_btn_task_init();
+    tilt_encoder_task_init();
+
+    osKernelInitialize();
+
+    MX_FREERTOS_Init();
+    osKernelStart();
+
+    // should never get here
+    while (1) {}
 }
